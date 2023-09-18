@@ -1,0 +1,134 @@
+A
+<!-- index.html in information_desk/templates/information_desk -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" "width=device-width, initial-scale=1.0">
+    <title>Hotel Informask</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
+
+    <style>
+        /* Add custom CSS styles for the card layout */
+		body {
+			background: red;
+			color: white
+		}
+        .card {
+            margin: 20px;
+            padding: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        }
+        .city-name {
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .date-time {
+            font-size: 24px;
+        }
+		.time {
+            font-size: 40px;
+        }
+        .temperature-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .temperature {
+            font-size: 28px;
+            margin-right: 20px;
+        }
+        .weather-description {
+            font-size: 24px;
+        }
+         .currency {
+            font-size: 26px;
+        }
+        .rate {
+            font-size: 26px;
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            
+            {% for weather, time in weather_time_data %}
+            <div class="col-md-3">
+                <div class="card">
+                    <h2 class="city-name">{{ weather.city.name }}</h2>
+                    <p class="date-time">{{ time.current_date }}</p>
+                    <h2 class="time">{{ time.current_time }}</h2>
+                    <div class="temperature-icon">
+                       
+                        <p class="temperature">{{ weather.temprature }}° C</p>
+                        <img src="http://openweathermap.org/img/w/{{ weather.icon }}.png" alt="Weather Icon">
+                    </div>
+                    <p class="weather-description">{{ weather.descritpion }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="container">
+	    <div class="row">
+		    <div class="col-md-6">
+			    <div class="card">
+				<h3 class="city-name">Room Rate</h3>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Room Type</th>
+                            <th>Rate</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for room in rooms %}
+                        <tr>
+                            <td class="currency">{{ room.roomType }}</td>
+                            <td class="rate">{{ room.price }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="bg-dark text-white">
+                        <p>Prices includes breakfast, all taxes, and airport shuttle on request.</p>
+                    </div>                      
+			    </div>
+	        </div>
+
+		    <div class="col-md-6">
+		        <div class="card">
+				<h3 class="city-name">Exchange Rate</h3> 
+				<p>{{ applicable_date }}</p>
+				    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Currency</th>
+                            <th>Rate</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for currency, rate in currency_to_display.items %}
+                        <tr>
+                            <td class="currency">{{ currency }}</td>
+                            <td class="rate">{{ rate }}</td>
+                        </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>	
+			    </div>	
+		    </div>
+	    </div>
+    </div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+
+</body>
+</html>
