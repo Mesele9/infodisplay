@@ -26,6 +26,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'display'
 ]
 
@@ -59,7 +60,14 @@ TEMPLATES = [
     },
 ]
 
+
+ASGI_APPLICATION = 'infodisplay.asgi.application'
+
 WSGI_APPLICATION = 'infodisplay.wsgi.application'
+
+
+# Celery settings
+CELERY_BROKER_URL = 'redis://localhost:6379'
 
 
 # Database
