@@ -132,7 +132,7 @@
 
 <!-- Add this JavaScript code to your index.html template -->
 <script>
-    var socket = new WebSocket('ws://localhost:8000/ws/display');
+    var socket = new WebSocket('ws://localhost:8000/ws/display/');
 
     socket.onmessage = function(event) {
         var data = JSON.parse(event.data);
@@ -141,10 +141,11 @@
         if (data.type === 'send_to_display') {
             // Handle the updated data here and update your frontend
             var updatedData = data.data;
-
+            console.log(updatedData);
             // Find the corresponding card element by city name or another unique identifier
             var cardElement = document.querySelector('.city-name:contains(' + updatedData.city.name + ')').closest('.card');
 
+            console.log(updatedData.city.name)
             // Update the card's elements with the received data
             cardElement.querySelector('.date-time').innerText = updatedData.time.current_date;
             cardElement.querySelector('.time').innerText = updatedData.time.current_time;

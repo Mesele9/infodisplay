@@ -1,7 +1,7 @@
-from django.urls import path
+from django.urls import re_path
 
-from .consumers import DisplayConsumer
+from . import consumers
 
-ws_urlpatterns = [
-    path('ws/display', DisplayConsumer.as_asgi())
+websocket_urlpatterns = [
+    re_path('ws/display/$', consumers.DisplayConsumer.as_asgi()),
 ]
