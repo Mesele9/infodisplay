@@ -1,4 +1,3 @@
-A
 <!-- index.html in information_desk/templates/information_desk -->
 
 <!DOCTYPE html>
@@ -57,18 +56,18 @@ A
     <div class="container">
         <div class="row">
             
-            {% for weather, time in weather_time_data %}
+            {% for data in time_weather_data %}
             <div class="col-md-3">
                 <div class="card">
-                    <h2 class="city-name">{{ weather.city.name }}</h2>
-                    <p class="date-time">{{ time.current_date }}</p>
-                    <h2 class="time">{{ time.current_time }}</h2>
+                    <h2 class="city-name">{{ data.city }}</h2>
+                    <p class="date-time">{{ data.current_date }}</p>
+                    <h2 class="time" id="time">{{ data.current_time }}</h2>
                     <div class="temperature-icon">
                        
-                        <p class="temperature">{{ weather.temprature }}° C</p>
-                        <img src="http://openweathermap.org/img/w/{{ weather.icon }}.png" alt="Weather Icon">
+                        <p class="temperature">{{ data.temperature }}° C</p>
+                        <img src="http://openweathermap.org/img/w/{{ data.icon }}.png" alt="Weather Icon">
                     </div>
-                    <p class="weather-description">{{ weather.descritpion }}</p>
+                    <p class="weather-description">{{ data.descritpion }}</p>
                 </div>
             </div>
             {% endfor %}
@@ -105,7 +104,7 @@ A
 		    <div class="col-md-6">
 		        <div class="card">
 				<h3 class="city-name">Exchange Rate</h3> 
-				<p>{{ applicable_date }}</p>
+				<p>{{ rate_applicable_date }}</p>
 				    <table class="table">
                         <thead>
                         <tr>
@@ -129,6 +128,31 @@ A
 
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
+
+
+<!-- Add this JavaScript code to your index.html template -->
+<script>
+    var socket = new WebSocket('ws://localhost:8000/ws/display');
+
+    socket.onmessage = function(event) {
+        var data = JSON.parse(event.data);
+
+        // Check the type of update (you may have different types)
+        if (data.type === 'send_to_display') {
+            // Handle the updated data here and update your frontend
+            var updatedData = data.data;
+
+            // Find the corresponding card element by city name or another unique identifier
+            var cardElement = document.querySelector('.city-name:contains(' + updatedData.city.name + ')').closest('.card');
+
+            // Update the card's elements with the received data
+            cardElement.querySelector('.date-time').innerText = updatedData.time.current_date;
+            cardElement.querySelector('.time').innerText = updatedData.time.current_time;
+            cardElement.querySelector('.temperature').innerText = updatedData.weather.temperature + '° C';
+            cardElement.querySelector('.weather-description').innerText = updatedData.weather.description;
+        }
+    }
+</script>
 
 </body>
 </html>

@@ -41,8 +41,8 @@ def fetch_time_task():
             formated_current_date = datetime.strptime(current_date_str, "%m/%d/%Y").date()
 
             cached_time, created = CachedTime.objects.get_or_create(city=city['id'])
-            cached_time.current_time = str(formated_current_time)
-            cached_time.current_date = str(formated_current_date)
+            cached_time.current_time = formated_current_time
+            cached_time.current_date = formated_current_date
             cached_time.save()
             
             time_api_end = time.time() - time_api_starts
@@ -148,10 +148,8 @@ def daily_exchange_rate_task():
     print("{} {}".format(rate_applicable_date, currency_to_display))
     scrap_end = time.time() - scrap_starts
     print(f"Webscrap time: {scrap_end}")
-    daily_exchange_data = {
+    return {
         'rate_applicable_date': rate_applicable_date, 
         'currency_to_display': currency_to_display
     }
-    print(daily_exchange_data)
-    return daily_exchange_data
 

@@ -1,12 +1,18 @@
+
+from __future__ import absolute_import, unicode_literals
 import os
 from celery import Celery
+
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'infodisplay.settings')
 
 app = Celery('infodisplay')
 
-app.config_from_object('django.conf:settings', namespace='CELERY')
+app.config_from_object('django.conf:settings', namespace='CELERY', force=True)
+
+#app.conf.broker_url = 'redis://localhost:6379/0'
+#app.conf.result_backend = 'redis://localhost:6379/1'
 
 app.conf.beat_schedule = {
     'fetch_time_60s': {
