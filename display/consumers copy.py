@@ -1,17 +1,25 @@
-from channels.generic.websocket import AsyncWebsocketConsumer
 import json
-from .custom_encoder import CustomJSONEncoder
+from channels.generic.websocket import AsyncWebsocketConsumer
+from asgiref.sync import async_to_sync
 
 class DisplayConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         await self.channel_layer.group_add('display', self.channel_name)
-        return self.accept()
-    
+        await self.accept()
+
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard('display', self.channel_name)
 
     async def send_to_display(self, event):
         data = event['data']
-        data_json = json.dumps(data, cls=CustomJSONEncoder)
-        await self.send(data_json)
+        await self.send(text_data=json.dumps({
+            'type': 'send_to_display',
+            'data': data,
+        }))
 
+    
+    async def receive(self, text_data):
+        message_data = json.loads(text_data)
+        message = message_data['message']
+
+        await self.send(text_data=json.dumps({'message': message}))

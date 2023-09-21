@@ -24,8 +24,15 @@ def fetch_time_task():
     """ a function that fetch the time fro api"""
     cities_obj = get_cities()
     time_task_result = []
+
+    """ time_url = "https://www.timeapi.io/api/Time/current/zone?timeZone={}/{}"
+    cities_time_url = [time_url.format(city['city_timezone'], city['name']) for city in cities_obj]
+    
+    
+    response = [requests.get(city_url) for city_url in cities_time_url] """
+    
+
     for city in cities_obj:
-        time_api_starts = time.time()
         timezone = city['city_timezone']
         city_name = city['name']
         time_url = "https://www.timeapi.io/api/Time/current/zone?timeZone={}/{}".format(timezone, city_name)
@@ -41,13 +48,10 @@ def fetch_time_task():
             formated_current_date = datetime.strptime(current_date_str, "%m/%d/%Y").date()
 
             cached_time, created = CachedTime.objects.get_or_create(city=city['id'])
-            cached_time.current_time = formated_current_time
-            cached_time.current_date = formated_current_date
+            cached_time.current_time = str(formated_current_time)
+            cached_time.current_date = str(formated_current_date)
             cached_time.save()
-            
-            time_api_end = time.time() - time_api_starts
-            print(f"Time Api Time: {time_api_end}")
-            print(f"{city_name}: time is {cached_time.current_time} and Date is {cached_time.current_date}")
+       
             time_task_result.append({
                 'city': city['name'],
                 'current_time': cached_time.current_time,
@@ -56,10 +60,17 @@ def fetch_time_task():
         
         else:
             print("time api failed")
-    
-    print(f"time result after collected {time_task_result}")
-    return time_task_result
 
+    async_to_sync(channel_layer.group_send)(
+        'display',
+        {
+            'type': 'send_to_display',
+            'data': time_task_result,
+        }
+    )
+
+    
+    return time_task_result
 
 
 @shared_task
@@ -86,11 +97,7 @@ def fetch_weather_task():
             cached_weather.descritpion = description
             cached_weather.icon = icon
             cached_weather.save()
-
-
-            weather_api_end = time.time() - weather_api_start
-            print(f" Weather Api Time: {weather_api_end}")
-            print(f"{city_name}: temp {cached_weather.temprature} {cached_weather.descritpion}")
+            
             weather_task_result.append({
                 'city': city_name,
                 'temperature': cached_weather.temprature,
@@ -99,14 +106,13 @@ def fetch_weather_task():
             })
         else:
             print("weather api failed")
-    print(f"weather task result{weather_task_result}")
+
     return weather_task_result
 
 
 @shared_task
 def daily_exchange_rate_task():
     """ a function that scrap exchange rate from a url """
-    scrap_starts = time.time()
 
     url = "https://dashenbanksc.com/daily-exchange-rates/"
     res = requests.get(url)
@@ -145,11 +151,35 @@ def daily_exchange_rate_task():
             currency = Currency.objects.get(name=currency_name)
             ExchangeRate.objects.create(currency=currency, rate=exchange_rate_data[currency_name])
 
-    print("{} {}".format(rate_applicable_date, currency_to_display))
-    scrap_end = time.time() - scrap_starts
-    print(f"Webscrap time: {scrap_end}")
-    return {
+    daily_exchange_data = {
         'rate_applicable_date': rate_applicable_date, 
         'currency_to_display': currency_to_display
     }
+    print(daily_exchange_data)
+
+    return daily_exchange_data
+
+
+# Separate Celery task for periodic data updates
+@shared_task
+def send_updated_time_to_websockets():
+    updated_time = fetch_updated_time_weather_data()
+    updated_exchange_rate_data = fetch_updated_exchange_rate_data()
+
+    new_data = {
+        'time_weather_data': updated_time_weather_data,
+        'exchange_rate_data': updated_exchange_rate_data,
+    }
+
+    channel_layer = get_channel_layer()
+
+    # Send the updated data to the WebSocket group
+    async_to_sync(channel_layer.group_send)(
+        'display',
+        {
+            'type': 'send_to_display',
+            'data': new_data,
+        }
+    )
+
 

@@ -14,20 +14,21 @@ SECRET_KEY = 'django-insecure-p^ipb+8rhr=#)+o$mp$)$#b+g@eq33vwhs*6w+9q(j4w+=xjb5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '192.168.1.200']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.1.200']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',
-    'display'
+    'display',
 ]
 
 MIDDLEWARE = [
@@ -62,13 +63,14 @@ TEMPLATES = [
 
 
 ASGI_APPLICATION = 'infodisplay.asgi.application'
+
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
             'hosts': [('127.0.0.1', 6379)],
         },
-    },
+    }
 }
 
 WSGI_APPLICATION = 'infodisplay.wsgi.application'

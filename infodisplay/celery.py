@@ -21,11 +21,11 @@ app.conf.beat_schedule = {
     },
     'fetch_weather_120s': {
         'task': 'display.tasks.fetch_weather_task',
-        'schedule': 120.0,
+        'schedule': 600.0,
     },
      'daily_exchange_120s': {
         'task': 'display.tasks.daily_exchange_rate_task',
-        'schedule': 120.0,
+        'schedule': 21600.0,
     }
 }
 

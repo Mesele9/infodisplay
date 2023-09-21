@@ -52,6 +52,7 @@ class Currency(models.Model):
 class ExchangeRate(models.Model):
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
     rate = models.DecimalField(max_digits=10, decimal_places=4)
+    applicable_date = models.CharField(max_length=50, blank=True)
 
     def __str__(self):
         return "{}: {}".format(self.currency, self.rate)

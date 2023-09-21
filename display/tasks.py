@@ -21,11 +21,11 @@ def get_cities():
 
 @shared_task
 def fetch_time_task():
-    """ a function that fetch the time fro api"""
+    """A function that fetches the time from an API, saves it to the database, and sends it to the WebSocket."""
     cities_obj = get_cities()
     time_task_result = []
+
     for city in cities_obj:
-        time_api_starts = time.time()
         timezone = city['city_timezone']
         city_name = city['name']
         time_url = "https://www.timeapi.io/api/Time/current/zone?timeZone={}/{}".format(timezone, city_name)
@@ -44,22 +44,26 @@ def fetch_time_task():
             cached_time.current_time = str(formated_current_time)
             cached_time.current_date = str(formated_current_date)
             cached_time.save()
-            
-            time_api_end = time.time() - time_api_starts
-            print(f"Time Api Time: {time_api_end}")
-            print(f"{city_name}: time is {cached_time.current_time} and Date is {cached_time.current_date}")
+
             time_task_result.append({
                 'city': city['name'],
                 'current_time': cached_time.current_time,
                 'current_date': cached_time.current_date
             })
-        
-        else:
-            print("time api failed")
-    
-    print(f"time result after collected {time_task_result}")
-    return time_task_result
 
+    # Send the data to the WebSocket group
+    channel_layer = get_channel_layer()
+    channel_layer.group_send(
+        'display',
+        {
+            'type': 'send_to_display',
+            'data': time_task_result,
+        }
+    )
+
+    print(time_task_result)
+
+    return time_task_result
 
 
 @shared_task
@@ -86,11 +90,7 @@ def fetch_weather_task():
             cached_weather.descritpion = description
             cached_weather.icon = icon
             cached_weather.save()
-
-
-            weather_api_end = time.time() - weather_api_start
-            print(f" Weather Api Time: {weather_api_end}")
-            print(f"{city_name}: temp {cached_weather.temprature} {cached_weather.descritpion}")
+            
             weather_task_result.append({
                 'city': city_name,
                 'temperature': cached_weather.temprature,
@@ -99,14 +99,22 @@ def fetch_weather_task():
             })
         else:
             print("weather api failed")
-    print(f"weather task result{weather_task_result}")
+    
+    channel_layer = get_channel_layer()
+    channel_layer.group_send(
+        'display',
+        {
+            'type': 'send_to_display',
+            'data': weather_task_result,
+        }
+    )
+
     return weather_task_result
 
 
 @shared_task
 def daily_exchange_rate_task():
     """ a function that scrap exchange rate from a url """
-    scrap_starts = time.time()
 
     url = "https://dashenbanksc.com/daily-exchange-rates/"
     res = requests.get(url)
@@ -143,15 +151,21 @@ def daily_exchange_rate_task():
 
             # save the scraped data to the ExchangeRAte model
             currency = Currency.objects.get(name=currency_name)
-            ExchangeRate.objects.create(currency=currency, rate=exchange_rate_data[currency_name])
+            ExchangeRate.objects.create(currency=currency, rate=exchange_rate_data[currency_name], applicable_date=rate_applicable_date)
 
-    print("{} {}".format(rate_applicable_date, currency_to_display))
-    scrap_end = time.time() - scrap_starts
-    print(f"Webscrap time: {scrap_end}")
     daily_exchange_data = {
         'rate_applicable_date': rate_applicable_date, 
         'currency_to_display': currency_to_display
     }
-    print(daily_exchange_data)
+    
+    channel_layer = get_channel_layer()
+    channel_layer.group_send(
+        'display',
+        {
+            'type': 'send_to_display',
+            'data': daily_exchange_data,
+        }
+    )
+
     return daily_exchange_data
 
