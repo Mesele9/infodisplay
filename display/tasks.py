@@ -52,8 +52,7 @@ def fetch_time_task():
             })
 
     # Send the data to the WebSocket group
-    channel_layer = get_channel_layer()
-    channel_layer.group_send(
+    async_to_sync(channel_layer.group_send)(
         'display',
         {
             'type': 'send_to_display',
@@ -87,21 +86,21 @@ def fetch_weather_task():
 
             cached_weather, created = CachedWeather.objects.get_or_create(city=city['id'])
             cached_weather.temprature = temperature
-            cached_weather.descritpion = description
+            cached_weather.description = description
             cached_weather.icon = icon
             cached_weather.save()
             
             weather_task_result.append({
                 'city': city_name,
                 'temperature': cached_weather.temprature,
-                'descritpion': cached_weather.descritpion,
+                'descritpion': cached_weather.description,
                 'icon': cached_weather.icon
             })
         else:
             print("weather api failed")
     
-    channel_layer = get_channel_layer()
-    channel_layer.group_send(
+    # Send the data to the WebSocket group
+    async_to_sync(channel_layer.group_send)(
         'display',
         {
             'type': 'send_to_display',
@@ -158,8 +157,8 @@ def daily_exchange_rate_task():
         'currency_to_display': currency_to_display
     }
     
-    channel_layer = get_channel_layer()
-    channel_layer.group_send(
+    # Send the data to the WebSocket group
+    async_to_sync(channel_layer.group_send)(
         'display',
         {
             'type': 'send_to_display',

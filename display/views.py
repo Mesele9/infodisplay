@@ -39,7 +39,7 @@ def index(request):
     time_data = time_task.get()
     weather_data = weather_task.get()
     exchange_rate_data = exchange_rate_task.get()
-
+ 
     # Merge time and weather data
     time_weather_data = merge_time_and_weather_data(time_data, weather_data)
 
@@ -51,18 +51,7 @@ def index(request):
             'currency_to_display': exchange_rate_data['currency_to_display']
         }
     }
-
-    # Send the data to the frontend via WebSocket
-    channel_layer = get_channel_layer()
     
-    channel_layer.group_send(
-        'display',
-        {
-            'type': 'send_to_display',
-            'data': send_to_display,
-        }
-    )
-
     # Render the HTML template
     context = {
         'time_weather_data': time_weather_data,

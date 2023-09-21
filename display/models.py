@@ -23,7 +23,7 @@ class CachedWeather(models.Model):
     city = models.ForeignKey(City, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now=True)
     temprature = models.IntegerField(null=True, blank=True)
-    descritpion = models.CharField(max_length=100)
+    description = models.CharField(max_length=100)
     icon = models.CharField(max_length=20)
 
     def __str__(self):
