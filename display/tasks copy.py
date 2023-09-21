@@ -9,14 +9,19 @@ from celery import shared_task
 from .models import City, CachedTime, CachedWeather, Currency, ExchangeRate
 from decouple import config
 
+
 api_key = config('OPENWEATHERMAP_API_KEY', default='')
 
+
 channel_layer = get_channel_layer()
+
 
 def get_cities():
     cities = City.objects.all()
     cities_obj = [model_to_dict(city) for city in cities]
-    return cities_obj
+
+    return cities_obj 
+   
 
 @shared_task
 def fetch_time_task():
@@ -27,7 +32,7 @@ def fetch_time_task():
     for city in cities_obj:
         timezone = city['city_timezone']
         city_name = city['name']
-        time_url = f"https://www.timeapi.io/api/Time/current/zone?timeZone={timezone}/{city_name}"
+        time_url = "https://www.timeapi.io/api/Time/current/zone?timeZone={}/{}".format(timezone, city_name)
 
         response = requests.get(time_url)
 
@@ -45,7 +50,6 @@ def fetch_time_task():
             cached_time.save()
 
             time_task_result.append({
-                'source': 'time',
                 'city': city['name'],
                 'current_time': cached_time.current_time,
                 'current_date': cached_time.current_date
@@ -64,9 +68,10 @@ def fetch_time_task():
 
     return time_task_result
 
+
 @shared_task
 def fetch_weather_task():
-    """A function to fetch weather from an API"""
+    """A function to fetch weather from api"""
     cities_obj = get_cities()
     weather_task_result = []    
     for city in cities_obj:
@@ -83,20 +88,19 @@ def fetch_weather_task():
             icon = data['weather'][0]['icon']
 
             cached_weather, created = CachedWeather.objects.get_or_create(city=city['id'])
-            cached_weather.temperature = temperature
+            cached_weather.temprature = temperature
             cached_weather.description = description
             cached_weather.icon = icon
             cached_weather.save()
             
             weather_task_result.append({
-                'source': 'weather',
                 'city': city_name,
-                'temperature': cached_weather.temperature,
-                'description': cached_weather.description,
+                'temperature': cached_weather.temprature,
+                'descritpion': cached_weather.description,
                 'icon': cached_weather.icon
             })
         else:
-            print("Weather API failed")
+            print("weather api failed")
     
     # Send the data to the WebSocket group
     async_to_sync(channel_layer.group_send)(
@@ -109,22 +113,24 @@ def fetch_weather_task():
 
     return weather_task_result
 
+
 @shared_task
 def daily_exchange_rate_task():
-    """A function that scrapes exchange rates from a website"""
+    """ a function that scrap exchange rate from a url """
+
     url = "https://dashenbanksc.com/daily-exchange-rates/"
     res = requests.get(url)
 
     soup = BeautifulSoup(res.text, "html.parser")
 
-    # Get the applicable date
+    # get the applicable date
     date_element = soup.find("h4", style="text-align: center")
     if date_element:
         rate_applicable_date = date_element.get_text(strip=True)
     else:
         pass
 
-    # Get the exchange rate table data
+    # get the exchange rate table data
     item = soup.find('table')
     if item:
         exchange_rate_data = {}
@@ -138,19 +144,18 @@ def daily_exchange_rate_task():
     else:
         pass
 
-    # Get the currency names from the database
+    # get the currency names from the database
     currency_names = Currency.objects.values_list('name', flat=True)
     currency_to_display = {}
     for currency_name in currency_names:
         if currency_name in exchange_rate_data:
             currency_to_display[currency_name] = exchange_rate_data[currency_name]
 
-            # Save the scraped data to the ExchangeRate model
+            # save the scraped data to the ExchangeRAte model
             currency = Currency.objects.get(name=currency_name)
             ExchangeRate.objects.create(currency=currency, rate=exchange_rate_data[currency_name], applicable_date=rate_applicable_date)
 
     daily_exchange_data = {
-        'source': 'exchange',
         'rate_applicable_date': rate_applicable_date, 
         'currency_to_display': currency_to_display
     }
@@ -165,3 +170,4 @@ def daily_exchange_rate_task():
     )
 
     return daily_exchange_data
+

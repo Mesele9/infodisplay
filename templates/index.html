@@ -64,7 +64,7 @@
             <div class="col-md-3">
                 <div class="card">
                     <h2 class="city-name">{{ data.city }}</h2>
-                    <p class="date-time">{{ data.current_date }}</p>
+                    <p class="date-time" id="date-{{ data.city }}">{{ data.current_date }}</p>
                     <h2 class="time" id="time-{{ data.city }}">{{ data.current_time }}</h2>
                     <div class="temperature-icon">
                         <p class="temperature" id="temperature-{{ data.city }}">{{ data.temperature }}° C</p>
@@ -120,6 +120,7 @@
         </div>
     </div>
 
+
     <script>
         var socket = new WebSocket('ws://localhost:8000/ws/display/');
 
@@ -128,42 +129,53 @@
         };
 
         socket.onmessage = function(event) {
-            var data = JSON.parse(event.data);
-            console.log('WebSocket message received', data);
 
-            // Check if it's a test message
-            if (data.data.message === 'This is a test message') {
-                // Handle the test message (for debugging)
-                console.log('Received test message:', data.data.message);
-            } else {
-                // Handle your actual data format here
-                console.log('Received data from WebSocket:', data);
+            var dataArray = JSON.parse(event.data);
+            console.log('WebSocket message received', dataArray);
 
-                // Update your UI based on the received data...
-                if (data.type === 'text') {
-                    // Handle the updated data here and update your frontend
-                    var updatedData = data.data;
-
-                    // Find the corresponding card element by city name or another unique identifier
-                    var cardElements = document.querySelectorAll('.city-name');
-
-                    cardElements.forEach(function(cardElement) {
-                        if (cardElement.innerText === updatedData.city) {
-                            var parentCard = cardElement.closest('.card');
-                            parentCard.querySelector('.date-time').innerText = updatedData.current_date;
-                            parentCard.querySelector('.time').innerText = updatedData.current_time;
-                            parentCard.querySelector('.temperature').innerText = updatedData.temperature;
-                            parentCard.querySelector('.weather-description').innerText = updatedData.description;
+            // Loop through the array of data
+            dataArray.forEach(function(data) {
+                // Check the source property to determine the data type
+                switch (data.source) {
+                    case 'time':
+                        // Handle time data
+                        var timeElement = document.getElementById('time-' + data.city);
+                        if (timeElement) {
+                            timeElement.innerText = data.current_time;
                         }
-                    });
+                        // Update other properties as needed
+                        break;
+
+                    case 'weather':
+                        // Handle weather data
+                        var temperatureElement = document.getElementById('temperature-' + data.city);
+                        var descriptionElement = document.getElementById('description-' + data.city);
+
+                        if (temperatureElement && descriptionElement) {
+                            temperatureElement.innerText = data.temperature + '° C';
+                            descriptionElement.innerText = data.description;
+                        }
+                        // Update other properties as needed
+                        break;
+
+                    case 'exchange':
+                        // Handle exchange rate data
+                        // Update exchange rate elements as needed
+                        break;
+
+                    default:
+                        // Handle other data types, if any
+                        break;
                 }
-            }
+            });
         };
 
         socket.onclose = function(event) {
             console.log("WebSocket connection closed:", event);
         };
     </script>
+
+   
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
 </body>
