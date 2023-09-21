@@ -1,5 +1,6 @@
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -10,6 +11,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-p^ipb+8rhr=#)+o$mp$)$#b+g@eq33vwhs*6w+9q(j4w+=xjb5'
+
+# Openweather api key
+OPENWEATHERMAP_API_KEY = config('OPENWEATHERMAP_API_KEY', default='')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

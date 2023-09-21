@@ -7,6 +7,10 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from celery import shared_task
 from .models import City, CachedTime, CachedWeather, Currency, ExchangeRate
+from decouple import config
+
+
+api_key = config('OPENWEATHERMAP_API_KEY', default='')
 
 
 channel_layer = get_channel_layer()
@@ -71,10 +75,9 @@ def fetch_weather_task():
     cities_obj = get_cities()
     weather_task_result = []    
     for city in cities_obj:
-        weather_api_start = time.time()
         city_name = city['name']
 
-        api_url = "http://api.openweathermap.org/data/2.5/weather?q={}&units=metric&id=524901&appid=39dc2a00957e43bc26c6cbb435c7a8a1".format(city_name)
+        api_url = f"http://api.openweathermap.org/data/2.5/weather?q={city_name}&units=metric&id=524901&appid={api_key}"
         
         response = requests.get(api_url)
 
