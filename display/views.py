@@ -3,7 +3,7 @@ from django.http import HttpResponse
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
-from .models import Rooms
+from .models import Rooms, City
 from .tasks import fetch_time_task, fetch_weather_task, daily_exchange_rate_task
 
 
@@ -52,9 +52,17 @@ def index(request):
         }
     }
     
+    total_cities = City.objects.all().count()
+    if total_cities > 0:
+        column_width = 12 // total_cities
+    else:
+        column_width = 12
+    print(column_width)
+
     # Render the HTML template
     context = {
         'time_weather_data': time_weather_data,
+        'column_width': column_width,
         'rate_applicable_date': exchange_rate_data['rate_applicable_date'],
         'currency_to_display': exchange_rate_data['currency_to_display'],
         'rooms': Rooms.objects.all(),  # Load rooms here, only when needed

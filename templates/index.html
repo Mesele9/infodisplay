@@ -1,5 +1,5 @@
 <!-- index.html in information_desk/templates/information_desk -->
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,60 +8,14 @@
     <title>Hotel Informask</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9" crossorigin="anonymous">
 
-    <style>
-        /* Add custom CSS styles for the card layout */
-        body {
-            background: red;
-            color: white;
-        }
-        .card {
-            margin: 10px;
-            padding: 10px;
-            text-align: center;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-        }
-        .city-name {
-            font-size: 36px;
-            font-weight: bold;
-        }
-        .date-time {
-            font-size: 24px;
-        }
-        .time {
-            font-size: 40px;
-        }
-        .temperature-icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .temperature {
-            font-size: 28px;
-            margin-right: 20px;
-        }
-        .weather-description {
-            font-size: 24px;
-        }
-        .currency {
-            font-size: 26px;
-        }
-        .rate {
-            font-size: 26px;
-            font-weight: bold;
-        }
-        .marquee {
-            padding: 0; 
-            margin: 0; 
-            white-space: nowrap; 
-            overflow: hidden;
-        }
-    </style>
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+
 </head>
 <body>
     <div class="container">
         <div class="row">
             {% for data in time_weather_data %}
-            <div class="col-md-3">
+            <div class="col-md-{{ column_width }}">
                 <div class="card">
                     <h2 class="city-name">{{ data.city }}</h2>
                     <p class="date-time" id="date-{{ data.city }}">{{ data.current_date }}</p>
@@ -121,61 +75,7 @@
     </div>
 
 
-    <script>
-        var socket = new WebSocket('ws://localhost:8000/ws/display/');
-
-        socket.onopen = function(event) {
-            console.log("WebSocket connection opened:", event);
-        };
-
-        socket.onmessage = function(event) {
-
-            var dataArray = JSON.parse(event.data);
-            console.log('WebSocket message received', dataArray);
-
-            // Loop through the array of data
-            dataArray.forEach(function(data) {
-                // Check the source property to determine the data type
-                switch (data.source) {
-                    case 'time':
-                        // Handle time data
-                        var timeElement = document.getElementById('time-' + data.city);
-                        if (timeElement) {
-                            timeElement.innerText = data.current_time;
-                        }
-                        // Update other properties as needed
-                        break;
-
-                    case 'weather':
-                        // Handle weather data
-                        var temperatureElement = document.getElementById('temperature-' + data.city);
-                        var descriptionElement = document.getElementById('description-' + data.city);
-
-                        if (temperatureElement && descriptionElement) {
-                            temperatureElement.innerText = data.temperature + '° C';
-                            descriptionElement.innerText = data.description;
-                        }
-                        // Update other properties as needed
-                        break;
-
-                    case 'exchange':
-                        // Handle exchange rate data
-                        // Update exchange rate elements as needed
-                        break;
-
-                    default:
-                        // Handle other data types, if any
-                        break;
-                }
-            });
-        };
-
-        socket.onclose = function(event) {
-            console.log("WebSocket connection closed:", event);
-        };
-    </script>
-
-   
+    <script src="{% static 'js/script.js' %}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-HwwvtgBNo3bZJJLYd8oVXjrBZt8cqVSpeBNS5n7C8IVInixGAoxmnlMuBnhbgrkm" crossorigin="anonymous"></script>
 </body>
