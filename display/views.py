@@ -15,22 +15,18 @@ def index(request):
     weather_data = cache.get('fetch_weather_task_result')
     exchange_rate_data = cache.get('daily_exchange_rate_task_result')
 
-
-    if time_data is None or weather_data is None or exchange_rate_data is None:
-        # If any of the data is missing in the cache, fetch it using Celery tasks
+    # Check if the cached data is missing or expired for each data type
+    if time_data is None:
         time_task = fetch_time_task.delay()
-        weather_task = fetch_weather_task.delay()
-        exchange_rate_task = daily_exchange_rate_task.delay()
-
-        # Wait for the results
         time_data = time_task.get()
-        weather_data = weather_task.get()
-        exchange_rate_data = exchange_rate_task.get()
 
-        # Store the results in cache
-        cache.set('fetch_time_task_result', time_data, 60)
-        cache.set('fetch_weather_task_result', weather_data, 600)
-        cache.set('daily_exchange_rate_task_result', exchange_rate_data, 21000)
+    if weather_data is None:
+        weather_task = fetch_weather_task.delay()
+        weather_data = weather_task.get()
+
+    if exchange_rate_data is None:
+        exchange_rate_task = daily_exchange_rate_task.delay()
+        exchange_rate_data = exchange_rate_task.get()
 
 
     time_weather_data = merge_time_and_weather_data(time_data, weather_data)

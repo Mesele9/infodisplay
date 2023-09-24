@@ -2,6 +2,7 @@ import requests
 from django.forms.models import model_to_dict
 from datetime import datetime
 import time
+from django.core.cache import cache
 from bs4 import BeautifulSoup
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
@@ -62,6 +63,8 @@ def fetch_time_task():
         }
     )
 
+    cache.set('fetch_time_task_result', time_task_result, 60)
+
     return time_task_result
 
 @shared_task
@@ -108,6 +111,8 @@ def fetch_weather_task():
             'data': weather_task_result,
         }
     )
+
+    cache.set('fetch_weather_task_result', weather_task_result, 600)
 
     return weather_task_result
 
@@ -165,5 +170,7 @@ def daily_exchange_rate_task():
             'data': daily_exchange_data,
         }
     )
+
+    cache.set('daily_exchange_rate_task_result', daily_exchange_data, 21600)
 
     return daily_exchange_data
