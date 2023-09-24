@@ -17,13 +17,13 @@ app.config_from_object('django.conf:settings', namespace='CELERY', force=True)
 app.conf.beat_schedule = {
     'fetch_time_60s': {
         'task': 'display.tasks.fetch_time_task',
-        'schedule': 3600.0,
+        'schedule': 60.0,
     },
-    'fetch_weather_120s': {
+    'fetch_weather_600s': {
         'task': 'display.tasks.fetch_weather_task',
-        'schedule': 3600.0,
+        'schedule': 600.0,
     },
-     'daily_exchange_120s': {
+     'daily_exchange_6h': {
         'task': 'display.tasks.daily_exchange_rate_task',
         'schedule': 21600.0,
     }

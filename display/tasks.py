@@ -40,7 +40,6 @@ def fetch_time_task():
             formated_current_date = datetime.strptime(current_date_str, "%m/%d/%Y").date()
 
             city_instance = City.objects.get(id=city['id'])
-            print(city_instance)
                                             
             cached_time, created = CachedTime.objects.get_or_create(city=city_instance)
             cached_time.current_time = str(formated_current_time)
@@ -63,8 +62,6 @@ def fetch_time_task():
         }
     )
 
-    print(time_task_result)
-
     return time_task_result
 
 @shared_task
@@ -86,7 +83,6 @@ def fetch_weather_task():
             icon = data['weather'][0]['icon']
 
             city_instance = City.objects.get(id=city['id'])
-            print(city_instance)
 
             cached_weather, created = CachedWeather.objects.get_or_create(city=city_instance)
             cached_weather.temperature = temperature

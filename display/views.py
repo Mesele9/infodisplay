@@ -2,70 +2,46 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.core.cache import cache
 
 from .models import Rooms, City
 from .tasks import fetch_time_task, fetch_weather_task, daily_exchange_rate_task
-
-
-def merge_time_and_weather_data(time_data, weather_data):
-    merged_data = []
-
-    # Create a dictionary to map 'city' to its corresponding 'weather' data
-    weather_data_map = {entry['city']: entry for entry in weather_data}
-
-    for entry in time_data:
-        city = entry['city']
-        weather_entry = weather_data_map.get(city, {})
-        merged_entry = {
-            'city': city,
-            'current_date': entry['current_date'],
-            'current_time': entry['current_time'],
-            'temperature': weather_entry.get('temperature', ''),
-            'description': weather_entry.get('description', ''),
-            'icon': weather_entry.get('icon', ''),
-        }
-        merged_data.append(merged_entry)
-
-    return merged_data
+from .utils import get_template_column_width, merge_time_and_weather_data
 
 
 def index(request):
     # Fetch data asynchronously without blocking the view
-    time_task = fetch_time_task.delay()
-    weather_task = fetch_weather_task.delay()
-    exchange_rate_task = daily_exchange_rate_task.delay()
+    time_data = cache.get('fetch_time_task_result')
+    weather_data = cache.get('fetch_weather_task_result')
+    exchange_rate_data = cache.get('daily_exchange_rate_task_result')
 
-    # Wait for the results of the tasks
-    time_data = time_task.get()
-    weather_data = weather_task.get()
-    exchange_rate_data = exchange_rate_task.get()
- 
-    # Merge time and weather data
+
+    if time_data is None or weather_data is None or exchange_rate_data is None:
+        # If any of the data is missing in the cache, fetch it using Celery tasks
+        time_task = fetch_time_task.delay()
+        weather_task = fetch_weather_task.delay()
+        exchange_rate_task = daily_exchange_rate_task.delay()
+
+        # Wait for the results
+        time_data = time_task.get()
+        weather_data = weather_task.get()
+        exchange_rate_data = exchange_rate_task.get()
+
+        # Store the results in cache
+        cache.set('fetch_time_task_result', time_data, 60)
+        cache.set('fetch_weather_task_result', weather_data, 600)
+        cache.set('daily_exchange_rate_task_result', exchange_rate_data, 21000)
+
+
     time_weather_data = merge_time_and_weather_data(time_data, weather_data)
 
-    # Prepare the data to send to the frontend via WebSocket
-    send_to_display = {
-        'time_weather_data': time_weather_data,
-        'exchange_rate_data': {
-            'applicable_date': exchange_rate_data['rate_applicable_date'],
-            'currency_to_display': exchange_rate_data['currency_to_display']
-        }
-    }
-    
-    total_cities = City.objects.all().count()
-    if total_cities > 0:
-        column_width = 12 // total_cities
-    else:
-        column_width = 12
-    print(column_width)
-
-    # Render the HTML template
+    # Render your template with the data
     context = {
         'time_weather_data': time_weather_data,
-        'column_width': column_width,
+        'column_width': get_template_column_width(),
         'rate_applicable_date': exchange_rate_data['rate_applicable_date'],
         'currency_to_display': exchange_rate_data['currency_to_display'],
-        'rooms': Rooms.objects.all(),  # Load rooms here, only when needed
+        'rooms': Rooms.objects.all(),
     }
 
     return render(request, 'index.html', context)
