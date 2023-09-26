@@ -1,4 +1,4 @@
-![Front Desk Info app index page](https://github.com/Mesele9/infodisplay/blob/master/Web%20capture_26-9-2023_154644_192.168.1.200.jpeg?raw=true)
+![Front Desk Info app index page](https://github.com/Mesele9/infodisplay/blob/master/static/Web%20capture_26-9-2023_154644_192.168.1.200.jpeg?raw=true)
 
 
 # Front Desk Information App
