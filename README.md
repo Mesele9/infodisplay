@@ -81,6 +81,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Contact
 
 For any inquiries or further information, please feel free to reach me:
-- **Email** [Mesele Assefa] at (getmesy@gmail.com)
+- **Email** (getmesy@gmail.com)
 - **GitHub** [Mesele Assefa](https://github.com/Mesele9)
 - **LinkedIn**: [Mesele Assefa](https://www.linkedin.com/in/mesele-assefa/)
