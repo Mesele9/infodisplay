@@ -1,7 +1,7 @@
 import requests
 from django.forms.models import model_to_dict
 from datetime import datetime
-import time
+from django.utils import timezone
 from django.core.cache import cache
 from bs4 import BeautifulSoup
 from asgiref.sync import async_to_sync
@@ -36,8 +36,9 @@ def fetch_time_task():
             data = response.json()
             current_time_str = data['time']
             current_date_str = data['date']
-
-            formated_current_time = datetime.strptime(current_time_str, "%H:%M").time()
+            
+            current_time = datetime.strptime(current_time_str, "%H:%M").time()
+            formated_current_time = current_time.strftime("%I:%M")
             formated_current_date = datetime.strptime(current_date_str, "%m/%d/%Y").date()
 
             city_instance = City.objects.get(id=city['id'])
